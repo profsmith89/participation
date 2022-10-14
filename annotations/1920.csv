@@ -1,0 +1,5 @@
+﻿Last name,First name,Student ID,Submission,Type,Score,Created,Last edited at,Replies,Upvoters,Status,Document,Page number,Range
+Jones,Steve,12345678,"I am a 1920 AC221 student.",comment,2,1920-01-27 07:53:33,2020-01-27 07:56:41,0,0,,Article 1,,"{""type"":""text"",""start"":14233,""end"":14504}"
+Smith,Mary,71311260,"I saw the sun rise in 1920.",comment,2,1920-01-28 15:15:05,2020-01-28 15:15:05,0,0,,Article 1,,"{""type"":""text"",""start"":7259,""end"":7418}"
+Brown,Avriel,71311261,"Even if they did, I would support them in 1920.",question,1,1920-01-28 15:15:59,2020-01-28 15:15:59,1,1,,Article 2,,"{""type"":""text"",""start"":7419,""end"":7684}"
+Smith,Mary,71311260,"Replying that the sun set later in 1920.",comment,1,1920-01-28 15:16:59,2020-01-28 15:16:59,0,1,,Article 2,,"{""type"":""text"",""start"":7419,""end"":7684}"

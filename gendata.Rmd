@@ -1,0 +1,319 @@
+---
+title: "ARC- HDSR (Marti & Smith, 2022)"
+author: "Deniz Marti and Michael Smith"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output:
+  html_document: 
+      code_folding: hide
+      
+---
+
+```{r setup, echo=FALSE, message=FALSE, warning=FALSE}
+# Load libraries and settings
+
+knitr::opts_chunk$set(
+    warning = FALSE,
+    message = FALSE,
+    comment = "#>",
+    fig.path = "figs/", # Plot save path
+    fig.width = 7.252, # Plot dimensions
+    fig.height = 4,
+    fig.retina = 3 # Better plot resolution
+)
+```
+
+
+Setup libraries
+```{r setup libraries, message=FALSE, warning=FALSE}
+
+#Load libraries and settings
+
+library(knitr)
+library(lubridate)
+library(tidyverse)
+library(here)
+library(readxl)
+library(psych)
+library(GPArotation)
+library(nFactors)
+library(reshape)
+library(lubridate)
+library (fcuk)
+library(ggplot2)
+library(janitor)
+#install.packages("corrr")
+library(MASS)
+install.packages("openxlsx")
+library(openxlsx)
+#install.packages("lme4") 
+#install.packages("Matrix")
+
+library(lme4)
+library(corrr)
+
+options(
+    htmltools.dir.version = FALSE,
+    knitr.table.format = "html",
+    knitr.kable.NA = '',
+    tibble.width = Inf)
+knitr::opts_chunk$set(
+    warning = FALSE,
+    message = FALSE,
+    fig.retina = 3)
+dplyr.width = Inf
+
+
+```
+
+##  Read in DSR data
+
+```{r raw data}
+
+dataDSR <- read_xlsx(here::here("data","MikeDSR_analysis_Deniz.xlsx") )
+
+## clean the names
+dataDSR=dataDSR%>%janitor::clean_names()
+head(dataDSR)
+
+```
+
+## T tests for authenticity and upvotes 
+(measurements related to the comments)
+We used independent sample Student t test to compare the measurements of two years. 
+
+```{r t test}
+#t.test for authenticity score
+dataDSR%>%t.test(authentic ~ year, data = .)
+#ANOVA for authenticity score, controlling for the effect of different documents
+dataDSR%>%aov(authentic ~ year+document, data = .)%>%summary()
+
+#t.test for upvotes per comment
+dataDSR%>%t.test(upvotes ~ year, data = .)
+#ANOVA for upvotes score, controlling for the effect of different documents
+dataDSR%>%aov(upvotes ~ year+document, data = .)%>%summary()
+
+
+#describe for auth. mean and SD-- summary statistics
+dataDSR%>%dplyr::filter(year=="2020")%>% describe()
+dataDSR%>%dplyr::filter(year=="2021")%>% describe()
+
+```
+
+## Preprocessing for discussion summaries
+ 
+```{r quality DSR}
+
+dataDSR_2 <- read_xlsx(here::here("data","MikeDSR_analysis_Deniz_2.xlsx"),sheet = "Iteration_1 (2)" ) # the data that included discussion number (via vlookup)
+#clean names
+dataDSR_2=dataDSR_2%>%janitor::clean_names()
+## quality 
+dataDSR_2=dataDSR_2%>%dplyr::select(-"submission")
+
+#filter 2020 data
+dataDSR_2_2020=dataDSR_2%>%filter(year=="2020")
+#filter 2021 data
+dataDSR_2_2021=dataDSR_2%>%filter(year=="2021")
+
+
+#summary of 2020 data
+df.summary_2020 <- dataDSR_2_2020 %>%    
+  group_by(conversation_no) %>%
+  summarise(qualityscore = round(sum(quality),2), #quality score of a discussion grouped by "conversation_no"
+            comment_count_indiscussion=n(), # number of comments in a discussion
+            mean_replies=round(mean(replies),2), #avg replies in a discussion
+            mean_upvotes=round(mean(upvotes),2) #avg upvotes in a discussion
+  )%>%mutate(year="2020") # include a year variable
+df.summary_2020=df.summary_2020%>%mutate(discussion_ornot=case_when(comment_count_indiscussion>1~1, TRUE~0)) # when there is one comment in a conversation, variable score is set to zero. 
+
+
+
+#summary of 2021 data 
+df.summary_2021 <- dataDSR_2_2021 %>%    
+  group_by(conversation_no) %>%
+  summarise(qualityscore = round(sum(quality),2),
+            comment_count_indiscussion=n(),
+            mean_replies=round(mean(replies),2),
+            mean_upvotes=round(mean(upvotes),2)
+  )%>%mutate(year="2021")
+df.summary_2021=df.summary_2021%>%mutate(discussion_ornot=case_when(comment_count_indiscussion>1~1, TRUE~0))
+
+
+```
+
+## T tests for the quality scores and avg. replies
+(measurements related to the discussions)
+```{r t test quality}
+
+t.test(df.summary_2020$discussion_ornot,df.summary_2021$discussion_ornot)
+
+df.summary_2020%>%describe()
+
+df.summary_2021%>%describe()
+
+t.test(df.summary_2020$mean_replies,df.summary_2021$mean_replies)
+
+```
+
+
+
+# T-tests
+
+## Mean Replies 
+```{r for discussion}
+
+#identify the discussions, comment_count>1
+df.summary_2020_filtered=df.summary_2020%>%dplyr::filter(comment_count_indiscussion>1)
+df.summary_2021_filtered=df.summary_2021%>%dplyr::filter(comment_count_indiscussion>1)
+# t.test for discussion
+t.test(df.summary_2020_filtered$qualityscore,df.summary_2021_filtered$qualityscore)
+
+t.test(df.summary_2020_filtered$mean_replies,df.summary_2021_filtered$mean_replies)
+
+#describe for SD
+df.summary_2020_filtered%>%describe()
+df.summary_2021_filtered%>%describe()
+
+
+```
+
+## For Binary Discussion 
+```{r quality binary}
+qualdata=rbind(df.summary_2020,df.summary_2021) # combine 2020 and 2021 data summaries
+
+qualdata=qualdata%>%filter(comment_count_indiscussion>1)%>%
+  mutate(quality_ornot=case_when(qualityscore==0 ~0,
+                                                  TRUE ~1))
+# operationalize quality as binary variable (set to zero if the original score is zero and set to 1 otherwise)
+
+# t test for the binary quality score
+qualdata%>%t.test(quality_ornot ~ year, data = .)
+
+qualdata%>%dplyr::filter(year=="2020")%>%describe()
+qualdata%>%dplyr::filter(year=="2021")%>%describe()
+
+```
+
+
+## For authenticity binary scoring
+```{r authentic binary}
+
+# authenti_ornot is a binary variable which takes zero value if the score is originally zero, 1 otherwise.
+MikeDSR=MikeDSR%>%mutate(authenti_ornot=case_when(authentic==0 ~0,
+                                                  TRUE ~1))
+#t test to compare binary authenticity scores of the years
+MikeDSR%>%t.test(authenti_ornot ~ year, data = .)
+
+#summary statistics
+MikeDSR%>%dplyr::filter(year=="2020")%>%describe()
+MikeDSR%>%dplyr::filter(year=="2021")%>%describe()
+
+```
+
+
+## Ggplots
+
+### Plot Auth. Scores
+```{r auth score ggplot}
+
+df.summary <- MikeDSR %>%
+  group_by(year) %>%
+  summarise(
+    sd = sd(authentic, na.rm = TRUE)/sqrt(length(authentic)), #we take sqrt because we look at the averages
+    mean = mean(authentic)
+  )
+df.summary
+#relabeling
+df.summary$year<-factor (df.summary$year, levels = c(
+ "2020",
+ "2021"),
+ labels=c("Spring 2020\nSemester","Spring 2021\nSemester"))
+
+p1<-ggplot(df.summary, aes(x=as.factor(year), y=mean)) +
+  geom_col(aes(fill = year), position = position_dodge(0.8), width = 0.2)+
+  geom_errorbar(
+    aes(ymin = mean-2*sd, ymax = mean+2*sd),
+    position =position_dodge(0.2), width = 0.1
+    )+
+  geom_point(aes(color = year), position = position_dodge(0.2))+
+  labs(title="Authentic Comments per Semester",
+       y="Average Authenticity Score") +
+  ylim(0,1)+
+ theme(legend.position = "none",
+       axis.title.x = element_blank())
+
+p1
+
+ggsave(here::here("figures","MikeDSR_authenticity.jpg"))
+
+```
+
+## Data Prep for Auth. Binary Score
+```{r auth binary score}
+df.summary <- MikeDSR %>%
+  group_by(year) %>%
+  summarise(
+    sd = sd(authenti_ornot, na.rm = TRUE)/sqrt(length(authenti_ornot)), #we take sqrt because we look at the averages
+    mean = mean(authenti_ornot)
+  )
+
+df.summary
+#relabeling
+df.summary$year<-factor (df.summary$year, levels = c(
+ "2020",
+ "2021"),
+ labels=c("Spring 2020","Spring 2021"))
+
+# add a variable that indicates the authenticity scores
+df.summary$metric = c("Authenticity Scores\nin Comments")
+
+```
+
+## Plot Data Prep for Quality Score
+
+```{r prep for qual}
+
+df.summary_qual <- qualdata %>%
+  group_by(year) %>%
+  summarise(
+    sd = sd(quality_ornot, na.rm = TRUE)/sqrt(length(quality_ornot)), #we take sqrt because we look at the averages
+    mean = mean(quality_ornot)
+  )
+
+
+df.summary_qual
+#relabeling
+df.summary_qual$year<-factor (df.summary_qual$year, levels = c(
+ "2020",
+ "2021"),
+ labels=c("Spring 2020","Spring 2021"))
+
+
+df.summary_qual$metric = c("Quality Scores\nin Discussions")
+```
+
+## Data Prep for Tabular form
+Combine authenticity and quality for tabular form
+```{r prep}
+
+df.summary_tabular = rbind(df.summary, df.summary_qual)
+
+```
+## Tabular Ggplots
+```{r tabular form facet wrap}
+
+p_tab<-ggplot(df.summary_tabular, aes(x=as.factor(year), y=mean)) +
+  geom_col(aes(fill = year), position = position_dodge(0.8), width = 0.2)+
+  geom_errorbar(
+    aes(ymin = mean-1.96*sd, ymax = mean+1.96*sd), # 1.96 for 95% CI
+    position =position_dodge(0.2), width = 0.1
+    )+ facet_grid(. ~ metric)+
+  geom_point(position = position_dodge(0.2))+
+  labs(title="Authenticity of Comments and Quality of \nDiscussions per Semester",
+       y="Percentages of Metrics") + theme_minimal(base_size = 18) + 
+ theme(legend.position = "none",text = element_text(size=18,colour="black"),
+       axis.title.x = element_blank())+scale_y_continuous(labels = scales::percent)+expand_limits(y = c(0, 1))  + scale_fill_grey() 
+
+ggsave(here::here("figures","HDSR_tabular.jpg"))
+
+
+```

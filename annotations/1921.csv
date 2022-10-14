@@ -1,0 +1,8 @@
+﻿Last name,First name,Student ID,Submission,Type,Score,Created,Last edited at,Replies,Upvoters,Status,Document,Page number,Range
+Greene,Bill,12333219,"I was an AC221 student.",comment,2,1921-01-27 07:53:33,1921-01-27 07:56:41,0,0,,Article 1,,"{""type"":""text"",""start"":14233,""end"":14504}"
+Phillips,Martha,71311269,"I saw the sun set.",comment,2,1921-01-28 15:15:05,1921-01-28 15:15:05,0,0,,Article 1,,"{""type"":""text"",""start"":7259,""end"":7418}"
+Black,Pat,71511261,"Whatever they did is fine.",question,1,1921-01-28 15:25:59,1921-01-28 15:15:59,3,2,,Article 1,,"{""type"":""text"",""start"":7419,""end"":7684}"
+Bacow,Larry,41511260,"Replying I love AC221.",comment,1,1921-01-28 15:35:59,1921-01-28 15:15:59,0,1,,Article 1,,"{""type"":""text"",""start"":7419,""end"":7684}"
+Smith,Michael,41519990,"Replying AC221 is green and blue.",comment,1,1921-01-28 15:45:59,1921-01-28 15:15:59,0,0,,Article 1,,"{""type"":""text"",""start"":7419,""end"":7684}"
+Brady,Tom,45511260,"Replying I love playing football. I am the goat. I will play forever and ever. No one can ever be better for I was born to play this game. I'll be playing when I'm eighty!",comment,1,1921-01-28 15:55:59,1921-01-28 15:15:59,0,1,,Article 1,,"{""type"":""text"",""start"":7419,""end"":7684}"
+Manning,Peyton,88511260,"I love filming commercials!!",comment,1,1921-01-28 16:15:59,1921-01-28 15:15:59,0,1,,Article 3,,"{""type"":""text"",""start"":7419,""end"":7684}"
