@@ -69,7 +69,7 @@ dplyr.width = Inf
 
 ```{r raw data}
 
-dataDSR <- read_xlsx(here::here("data","MikeDSR_analysis_Deniz.xlsx") )
+dataDSR <- read_xlsx(here::here("data","HDSR_data.xlsx"),sheet = "Auth_Rich_1" ) 
 
 ## clean the names
 dataDSR=dataDSR%>%janitor::clean_names()
@@ -103,7 +103,7 @@ dataDSR%>%dplyr::filter(year=="2021")%>% describe()
  
 ```{r quality DSR}
 
-dataDSR_2 <- read_xlsx(here::here("data","MikeDSR_analysis_Deniz_2.xlsx"),sheet = "Iteration_1 (2)" ) # the data that included discussion number (via vlookup)
+dataDSR_2 <- read_xlsx(here::here("data","HDSR_data.xlsx"),sheet = "Auth_Rich_2" ) # 
 #clean names
 dataDSR_2=dataDSR_2%>%janitor::clean_names()
 ## quality 
