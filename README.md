@@ -11,6 +11,8 @@ python3 fixup.py
 python3 code.py [-keep]
 python3 analyze.py year1 year2
 python3 tenpc.py
+
+Load gendata.Rmd in RStudio
 ```
 
 ### Usage and description of scripts
@@ -113,3 +115,7 @@ For the to-be-coded file, we expect that the user will enter the discussion's
 richness score on the first comment of the conversation and 0 in the
 richness-score field of every reply, if any, which is what `code.py` would have
 done and what you'll find in the already-coded output file.
+
+**Step 6.** Although `analyze.py` produces some statistics, the specific
+statistics in the paper were generated using `gendata.Rmd` running under
+RStudio.
